@@ -1,0 +1,42 @@
+services:
+  # --- SERWIS 1: BACKEND (Obliczenia) ---
+  api:
+    build: .
+    container_name: wsp_api
+    command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/wsp_db
+
+  # --- SERWIS 2: FRONTEND (Wizualizacja) ---
+  dashboard:
+    build: .
+    container_name: wsp_dashboard
+    # Streamlit musi wiedzieć, gdzie jest API (używamy nazwy serwisu 'api' jako hosta)
+    command: streamlit run src/dashboard.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      # Wewnątrz sieci Docker API jest pod adresem http://api:8000
+      - API_URL=http://api:8000
+    depends_on:
+      - api
+
+  # --- SERWIS 3: BAZA DANYCH (Persystencja) ---
+  db:
+    image: postgres:16-alpine
+    container_name: wsp_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wsp_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
