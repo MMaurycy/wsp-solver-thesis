@@ -4,9 +4,6 @@ from typing import List, Dict
 from src.solver.objectives import calculate_arrangement_score
 
 def solve_tsp_2opt(graph: nx.Graph, guests_at_table: List[int]) -> List[int]:
-    """
-    Optymalizuje kolejność usadzenia przy JEDNYM stole (Okrągły stół - 2-OPT).
-    """
     if len(guests_at_table) <= 2:
         return guests_at_table
     
@@ -39,9 +36,6 @@ def optimize_all_tables(
     assignment: Dict[int, int], 
     num_tables: int
 ) -> Dict[int, List[int]]:
-    """
-    Uruchamia TSP dla każdego stołu po kolei.
-    """
     # 1. Pogrupuj gości wg stołów
     tables = {i: [] for i in range(1, num_tables + 1)}
     for guest, table_id in assignment.items():

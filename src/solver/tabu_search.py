@@ -51,7 +51,6 @@ def solve_tabu(
     
     start_time = time.time()
     
-    # 1. Startujemy z DSatur jako warm-start
     if not initial_assignment:
         current_assignment, current_score, _ = solve_dsatur(graph, num_tables, table_capacity)
     else:
@@ -70,8 +69,6 @@ def solve_tabu(
 
     for iteration in range(max_iterations):
         if no_improvement_count >= MAX_NO_IMPROVEMENT:
-            # Dywersyfikacja: jeśli utknęliśmy, przetasujmy trochę
-            # (Tu można dodać logikę dywersyfikacji, na razie break)
             pass 
             
         moves = get_possible_moves(current_assignment, num_tables, tabu_list)
@@ -116,7 +113,7 @@ def solve_tabu(
             'iteration': iteration + 1, 
             'score': current_score, 
             'best_global_score': best_score, 
-            'conflicts': 0 # Uproszczenie dla szybkości
+            'conflicts': 0
         })
 
     end_time = time.time()

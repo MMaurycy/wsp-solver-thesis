@@ -9,7 +9,6 @@ import math
 import random
 import numpy as np
 
-# Adres API
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(page_title="WSP Solver - Thesis Visualization", layout="wide")
@@ -17,23 +16,8 @@ st.set_page_config(page_title="WSP Solver - Thesis Visualization", layout="wide"
 st.title("WSP Solver: System Optymalizacji")
 st.markdown("Tryb dwuetapowy: **GCP** (Stoły) + **TSP** (Kolejność).")
 
-# ============================================================================
-#  FUNKCJE POMOCNICZE
-# ============================================================================
 
 def generate_extreme_data(scenario_type, total_people=100, num_groups=None):
-    """
-    KLUCZOWA ZMIANA: Generator przyjmuje total_people (nie n_guests).
-    
-    Args:
-        scenario_type: "Zbalansowany", "Maksymalny Konflikt", "Same Preferencje"
-        total_people: Całkowita liczba osób (główny parametr)
-        num_groups: Liczba grup (opcjonalnie, domyślnie: total_people // 3)
-    
-    Returns:
-        guests: Lista słowników z kluczami {id, size, name}
-        relationships: Lista relacji
-    """
     # Auto-obliczenie liczby grup
     if num_groups is None:
         num_groups = max(10, total_people // 3)
@@ -43,7 +27,6 @@ def generate_extreme_data(scenario_type, total_people=100, num_groups=None):
         st.error(f"Błąd: {total_people} osób na {num_groups} grup - niemożliwe!")
         return [], []
     
-    # ===== ROZDZIAŁ OSÓB NA GRUPY (jak w api.py) =====
     group_sizes = [1] * num_groups  # Start: każda grupa ma 1 osobę
     remaining = total_people - num_groups
     max_group_size = 6
@@ -68,7 +51,6 @@ def generate_extreme_data(scenario_type, total_people=100, num_groups=None):
             "name": f"Grupa_{i} ({size}os.)"
         })
     
-    # ===== GENEROWANIE RELACJI =====
     relationships = []
     
     # Dostosuj prawdopodobieństwa do scenariusza
@@ -106,7 +88,6 @@ def generate_extreme_data(scenario_type, total_people=100, num_groups=None):
 
 
 def draw_global_network(guests, relationships, assignment):
-    """Wizualizacja grafu relacji (bez zmian)."""
     G = nx.Graph()
     for g in guests: 
         label = f"{g['name']}\n(x{g['size']})"
@@ -182,7 +163,6 @@ def draw_global_network(guests, relationships, assignment):
 
 
 def draw_round_tables_detail(arrangements, guests_data):
-    """Wizualizacja okrągłych stołów (bez zmian)."""
     fig = go.Figure()
     cols = 3
     spacing = 25
@@ -251,11 +231,6 @@ def draw_round_tables_detail(arrangements, guests_data):
     )
     return fig
 
-
-# ============================================================================
-#  SIDEBAR - PANEL STEROWANIA
-# ============================================================================
-
 with st.sidebar:
     st.header("Panel Sterowania")
     mode = st.radio(
@@ -263,7 +238,6 @@ with st.sidebar:
         ["Generator Losowy", "Wprowadzanie Ręczne (Matrix)"]
     )
     
-    # ========== TRYB 1: GENERATOR LOSOWY ==========
     if mode == "Generator Losowy":
         st.subheader("Parametry Instancji")
         
@@ -341,7 +315,6 @@ with st.sidebar:
                     st.success(f"Wygenerowano {len(g)} grup ({total_people} osób)!")
                     st.balloons()
 
-    # ========== TRYB 2: WPROWADZANIE RĘCZNE ==========
     else:
         st.info("Zdefiniuj grupy i relacje ręcznie.")
         
@@ -391,18 +364,16 @@ with st.sidebar:
             auto_man_tables, 20, auto_man_tables
         )
         
-        # ===== POPRAWKA: WALIDACJA I KONWERSJA DANYCH RĘCZNYCH =====
         if st.button("Zatwierdź Dane Ręczne", type="primary"):
             rels_out = []
             guests_out = []
             valid_ids = []
             
-            # ===== KROK 1: WALIDACJA I KONWERSJA GOŚCI =====
             for idx, row in edited_guests.iterrows():
                 try:
                     # Sprawdź, czy pola nie są puste
                     if pd.isna(row["ID"]) or pd.isna(row["Rozmiar"]):
-                        st.warning(f"⚠️ Wiersz {idx}: Pominięto - brak ID lub Rozmiaru")
+                        st.warning(f"Wiersz {idx}: Pominięto - brak ID lub Rozmiaru")
                         continue
                     
                     # Konwersja z wymuszeniem na natywne typy Python
@@ -412,7 +383,7 @@ with st.sidebar:
                     
                     # Walidacja zakresu
                     if size < 1:
-                        st.warning(f"⚠️ Grupa {gid}: Rozmiar musi być >= 1 (podano {size})")
+                        st.warning(f"Grupa {gid}: Rozmiar musi być >= 1 (podano {size})")
                         continue
                     
                     valid_ids.append(gid)
@@ -423,12 +394,12 @@ with st.sidebar:
                     })
                     
                 except (ValueError, TypeError) as e:
-                    st.warning(f"⚠️ Wiersz {idx}: Błąd konwersji - {str(e)}")
+                    st.warning(f"Wiersz {idx}: Błąd konwersji - {str(e)}")
                     continue
 
             # Sprawdź, czy są jakieś goście
             if not guests_out:
-                st.error("❌ Brak poprawnych danych gości! Wypełnij tabelę powyżej.")
+                st.error("Brak poprawnych danych gości! Wypełnij tabelę powyżej.")
                 st.stop()
 
             # ===== KROK 2: WALIDACJA I KONWERSJA RELACJI =====
@@ -438,7 +409,7 @@ with st.sidebar:
                         continue
                     
                     try:
-                        # KLUCZOWA POPRAWKA: wymuś konwersję wartości z macierzy
+                        #wymuś konwersję wartości z macierzy
                         val_raw = edited_matrix.loc[str(src_id), str(tgt_id)]
                         
                         # Obsługa różnych typów zwracanych przez Pandas
@@ -455,14 +426,13 @@ with st.sidebar:
                                 "source": src_id,
                                 "target": tgt_id,
                                 "weight": val,
-                                "is_conflict": bool(val > 0)  # Wymuś bool (nie np.bool_)
+                                "is_conflict": bool(val > 0)  # Wymuś bool
                             })
                     
                     except (ValueError, TypeError, KeyError) as e:
                         # Ignoruj błędy w macierzy (np. brakujące indeksy)
                         continue
-            
-            # ===== KROK 3: ZAPISZ DANE W SESSION STATE =====
+
             total_manual_people = sum(g['size'] for g in guests_out)
             
             st.session_state['data'] = {
@@ -480,14 +450,13 @@ with st.sidebar:
                 }
             }
             
-            st.success(f"✅ Zapisano {len(guests_out)} grup i {len(rels_out)} relacji!")
+            st.success(f"Zapisano {len(guests_out)} grup i {len(rels_out)} relacji!")
             
             # Debug info (możesz wyłączyć przed obroną)
-            with st.expander("🔍 Podgląd danych (debug)"):
+            with st.expander("Podgląd danych (debug)"):
                 st.write(f"**Przykładowy gość:** {guests_out[0] if guests_out else 'brak'}")
                 st.write(f"**Przykładowa relacja:** {rels_out[0] if rels_out else 'brak'}")
 
-    # ========== KONFIGURACJA ALGORYTMU ==========
     st.divider()
     st.subheader("Parametry Algorytmu")
     
@@ -512,16 +481,10 @@ with st.sidebar:
             help="Rozmiar listy Tabu (pamięć zakazanych ruchów)"
         )
 
-
-# ============================================================================
-#  WIDOK GŁÓWNY - ZAKŁADKI
-# ============================================================================
-
 if 'data' in st.session_state:
     d = st.session_state['data']
     meta = d.get('metadata', {})
     
-    # ========== WYŚWIETLENIE STATYSTYK PROBLEMU ==========
     st.subheader("Statystyki Problemu")
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -542,7 +505,6 @@ if 'data' in st.session_state:
     with col5:
         st.metric("Preferencje", meta.get('num_preferences', 0))
     
-    # Informacja o pojemności
     total_cap = d['num_tables'] * d['table_capacity']
     total_ppl = sum(g['size'] for g in d['guests'])
     utilization = (total_ppl / total_cap * 100) if total_cap > 0 else 0
@@ -551,20 +513,18 @@ if 'data' in st.session_state:
         st.error(f"**Za mało miejsc!** Goście: {total_ppl}, Pojemność: {total_cap}")
     else:
         st.info(
-            f"🪑 Pojemność sali: {total_cap} miejsc "
+            f"Pojemność sali: {total_cap} miejsc "
             f"({d['num_tables']} stołów × {d['table_capacity']} osób) | "
             f"Wykorzystanie: **{utilization:.1f}%**"
         )
     
     st.divider()
     
-    # ========== ZAKŁADKI: Single vs Benchmark ==========
     tab_single, tab_benchmark = st.tabs([
         "Pojedyncze Uruchomienie", 
         "Benchmark (Porównanie)"
     ])
     
-    # ========== ZAKŁADKA 1: POJEDYNCZE URUCHOMIENIE ==========
     with tab_single:
         if st.button("Start Solver", type="primary", use_container_width=True):
             with st.spinner(f"Optymalizacja algorytmem {alg.upper()}..."):
@@ -584,9 +544,8 @@ if 'data' in st.session_state:
                         timeout=30
                     )
                     
-                    # ===== ULEPSZONA OBSŁUGA BŁĘDÓW =====
                     if response.status_code == 422:
-                        st.error("🚨 **Błąd walidacji danych (422)**")
+                        st.error("**Błąd walidacji danych (422)**")
                         
                         error_detail = response.json()
                         
@@ -604,12 +563,12 @@ if 'data' in st.session_state:
                                 st.write(details)
                         
                         # Pokaż pełny JSON w expanderze
-                        with st.expander("🔍 Pełny JSON odpowiedzi API"):
+                        with st.expander("Pełny JSON odpowiedzi API"):
                             st.json(error_detail)
                         
                         # Pomoc dla użytkownika
                         st.info(
-                            "💡 **Wskazówka**: Sprawdź, czy:\n"
+                            "**Wskazówka**: Sprawdź, czy:\n"
                             "- Wszystkie pola w tabeli gości są wypełnione\n"
                             "- Rozmiary grup są liczbami >= 1\n"
                             "- Macierz relacji zawiera tylko liczby całkowite\n"
@@ -622,11 +581,11 @@ if 'data' in st.session_state:
                         st.code(response.text)
                         st.stop()
                     
-                    # ===== KONTYNUACJA (jeśli OK) =====
+                    # KONTYNUACJA (jeśli OK)
                     res = response.json()
                     
                     # Wyniki
-                    st.success("✅ Optymalizacja zakończona!")
+                    st.success("Optymalizacja zakończona!")
                     c1, c2, c3 = st.columns(3)
                     
                     with c1:
@@ -674,7 +633,7 @@ if 'data' in st.session_state:
                     
                     # Wykres konwergencji (tylko dla Tabu Search)
                     if res.get('history') and len(res['history']) > 1:
-                        st.subheader("📈 Konwergencja algorytmu")
+                        st.subheader("Konwergencja algorytmu")
                         df = pd.DataFrame(res['history'])
                         fig = px.line(
                             df, x='iteration', y='score',
@@ -689,20 +648,19 @@ if 'data' in st.session_state:
                         st.plotly_chart(fig, use_container_width=True)
                         
                 except requests.exceptions.Timeout:
-                    st.error("⏱️ **Timeout** - algorytm przekroczył limit 30s")
+                    st.error("**Timeout** - algorytm przekroczył limit 30s")
                     st.info("Spróbuj zmniejszyć liczbę iteracji lub użyć algorytmu Greedy/DSatur")
                     
                 except requests.exceptions.ConnectionError:
-                    st.error("🔌 **Błąd połączenia** - API nie odpowiada")
+                    st.error("**Błąd połączenia** - API nie odpowiada")
                     st.info(f"Sprawdź, czy backend działa: `{API_URL}`")
                     
                 except Exception as e:
-                    st.error(f"💥 **Nieoczekiwany błąd**: {str(e)}")
-                    with st.expander("🐛 Stack trace (dla debugowania)"):
+                    st.error(f"**Nieoczekiwany błąd**: {str(e)}")
+                    with st.expander("Stack trace (dla debugowania)"):
                         import traceback
                         st.code(traceback.format_exc())
 
-    # ========== ZAKŁADKA 2: BENCHMARK ==========
     with tab_benchmark:
         st.write("Porównanie wydajności trzech algorytmów na aktualnych danych.")
         
@@ -748,8 +706,7 @@ if 'data' in st.session_state:
             
             status_text.text("Benchmark zakończony!")
             
-            # ========== WYKRES PORÓWNAWCZY ==========
-            st.subheader("🏆 Wyścig Algorytmów: Score vs Iteracje")
+            st.subheader("Wyścig Algorytmów: Score vs Iteracje")
             fig_bench = go.Figure()
             
             # Tabu Search (linia zmienna)
@@ -798,7 +755,6 @@ if 'data' in st.session_state:
             )
             st.plotly_chart(fig_bench, use_container_width=True)
             
-            # ========== TABELA PODSUMOWUJĄCA ==========
             st.subheader("Podsumowanie Wydajności")
             summary_data = []
             
@@ -842,5 +798,4 @@ if 'data' in st.session_state:
             )
 
 else:
-    # ========== EKRAN POWITALNY (Brak Danych) ==========
     st.info("**Skonfiguruj dane w menu po lewej**, aby rozpocząć.")

@@ -14,7 +14,7 @@ def get_relationship_weight(graph: nx.Graph, u: int, v: int) -> int:
     if edge_data.get("conflict", False):
         return int(WEIGHT_CONFLICT)
     
-    # ZABEZPIECZENIE: rzutowanie na int
+    # rzutowanie na int
     val = edge_data.get("weight", WEIGHT_PREFERENCE)
     try:
         return int(val)

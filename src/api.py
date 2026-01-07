@@ -35,24 +35,6 @@ app.add_middleware(
 # ============================================================================
 
 def _distribute_people(total_people: int, num_groups: int) -> List[int]:
-    """
-    KLUCZOWA FUNKCJA: Rozdziela total_people osób na num_groups grup.
-    
-    Algorytm:
-    1. Start: każda grupa ma 1 osobę.
-    2. Losowo dodawaj osoby, max 6 osób/grupa.
-    3. Gwarantuje sumę == total_people.
-    
-    Args:
-        total_people: Całkowita liczba osób do rozdzielenia
-        num_groups: Liczba grup do utworzenia
-        
-    Returns:
-        Lista rozmiarów grup (np. [3, 2, 4, 1, ...])
-        
-    Raises:
-        ValueError: Jeśli total_people < num_groups
-    """
     if total_people < num_groups:
         raise ValueError(
             f"Niemożliwe do rozdzielenia: {total_people} osób na {num_groups} grup "
@@ -91,15 +73,6 @@ def _generate_relationships(
     conflict_prob: float = 0.15,
     preference_prob: float = 0.20
 ) -> List[Relationship]:
-    """
-    Generuje relacje między gośćmi na podstawie scenariusza.
-    
-    Args:
-        guests: Lista gości
-        scenario: "balanced", "conflicted", "peaceful"
-        conflict_prob: Prawdopodobieństwo konfliktu
-        preference_prob: Prawdopodobieństwo preferencji
-    """
     relationships = []
     n = len(guests)
     
@@ -137,9 +110,6 @@ def _generate_relationships(
 
 
 def build_graph(guests: List[Guest], relationships: List[Relationship]) -> nx.Graph:
-    """
-    Tworzy graf NetworkX z walidacją typów.
-    """
     G = nx.Graph()
     
     # Dodaj wierzchołki
@@ -183,14 +153,6 @@ def health_check():
 
 @app.post("/generate", response_model=GenerateDataResponse)
 def generate_test_data(request: GenerateDataRequest):
-    """
-    NOWY ENDPOINT: Generuje syntetyczne dane testowe.
-    
-    KLUCZOWA ZMIANA:
-    - Główny parametr to 'total_people' (liczba osób), nie 'num_groups'
-    - Liczba grup jest obliczana automatycznie lub podawana opcjonalnie
-    - Gwarantuje, że suma rozmiarów grup == total_people
-    """
     try:
         # 1. Oblicz liczbę grup (jeśli nie podano)
         num_groups = request.num_groups or max(10, request.total_people // 3)
@@ -242,9 +204,6 @@ def generate_test_data(request: GenerateDataRequest):
 
 @app.post("/solve", response_model=SolverResponse)
 def solve_endpoint(request: SolveRequest):
-    """
-    Rozwiązuje problem optymalizacji usadzenia gości.
-    """
     try:
         # 1. Walidacja wejścia
         total_people = sum(g.size for g in request.guests)
@@ -290,10 +249,6 @@ def solve_endpoint(request: SolveRequest):
 
 @app.post("/stats", response_model=ProblemStats)
 def calculate_stats(request: SolveRequest):
-    """
-    NOWY ENDPOINT: Oblicza statystyki problemu bez rozwiązywania.
-    Przydatne do walidacji danych przed uruchomieniem solvera.
-    """
     total_people = sum(g.size for g in request.guests)
     total_capacity = request.num_tables * request.table_capacity
     num_conflicts = sum(1 for r in request.relationships if r.is_conflict)

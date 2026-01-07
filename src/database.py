@@ -2,8 +2,6 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Boole
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-# Domyślny URL bazy (może być nadpisany przez zmienne środowiskowe w Dockerze)
-# Na razie używamy SQLite dla prostoty testów lokalnych, 
 # w Dockerze zmienimy na: postgresql://user:pass@db:5432/wsp_db
 SQLALCHEMY_DATABASE_URL = "sqlite:///./wsp_test.db"
 
@@ -14,7 +12,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# --- DEFINICJE MODELI TABEL ---
 
 class Event(Base):
     __tablename__ = "events"
@@ -38,5 +35,4 @@ class Relationship(Base):
     is_conflict = Column(Boolean, default=False)
 
 def init_db():
-    """Tworzy tabele w bazie danych."""
     Base.metadata.create_all(bind=engine)

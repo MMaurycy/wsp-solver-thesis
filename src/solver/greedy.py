@@ -7,10 +7,6 @@ def solve_greedy(
     num_tables: int, 
     table_capacity: int
 ) -> Tuple[Dict[int, int], float, int]:
-    """
-    Algorytm Zachłanny (Baseline):
-    Sortuje grupy malejąco po rozmiarze i wciska do pierwszego pasującego stołu.
-    """
     sorted_groups = sorted(
         graph.nodes(data=True), 
         key=lambda x: x[1].get('size', 1), 
@@ -42,7 +38,6 @@ def solve_greedy(
                     break
         
         if not assigned:
-            # Fallback: wrzucamy do najmniej obciążonego stołu (nawet z konfliktem)
             target_table = min(table_loads, key=table_loads.get)
             assignment[node_id] = target_table
             table_loads[target_table] += group_size

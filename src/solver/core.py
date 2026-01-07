@@ -23,7 +23,6 @@ def run_solver(
     
     history = []
     
-    # --- ETAP 1: PRZYPISANIE ---
     if algorithm == "greedy":
         assignment, score, conflicts = solve_greedy(graph, num_tables, table_capacity)
         history = [{'iteration': 0, 'score': score, 'conflicts': conflicts}]
@@ -46,7 +45,7 @@ def run_solver(
     else:
         raise ValueError(f"Nieznany algorytm: {algorithm}")
 
-    # --- ETAP 2: USADZENIE PRZY STOLE (TSP) ---
+
     print("Uruchamiam Etap 2: Optymalizacja kolejności (TSP)")
     arrangements = optimize_all_tables(graph, assignment, num_tables)
     

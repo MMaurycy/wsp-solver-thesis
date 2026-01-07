@@ -7,10 +7,6 @@ def solve_dsatur(
     num_tables: int, 
     table_capacity: int
 ) -> Tuple[Dict[int, int], float, int]:
-    """
-    Algorytm DSatur (Heurystyka):
-    Wybiera wierzchołek o największym stopniu nasycenia.
-    """
     assignment: Dict[int, int] = {}
     table_loads: Dict[int, int] = {i: 0 for i in range(1, num_tables + 1)}
     

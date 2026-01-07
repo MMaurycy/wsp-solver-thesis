@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Optional, Any
 from enum import Enum
 
-# --- Enumy dla lepszej walidacji ---
 class AlgorithmType(str, Enum):
     GREEDY = "greedy"
     DSATUR = "dsatur"
@@ -13,7 +12,6 @@ class ScenarioType(str, Enum):
     CONFLICTED = "conflicted"
     PEACEFUL = "peaceful"
 
-# --- Modele Wejściowe (Request) ---
 class Guest(BaseModel):
     id: int
     name: str = "Guest"
@@ -30,7 +28,6 @@ class SolverParams(BaseModel):
     tabu_tenure: int = Field(10, ge=5, le=50)
     beta: float = Field(1.0, ge=0.0, le=10.0, description="Współczynnik kary za balans")
 
-# --- NOWY MODEL: Generator Danych Testowych ---
 class GenerateDataRequest(BaseModel):
     """
     Parametry generowania syntetycznych danych.
@@ -73,21 +70,18 @@ class GenerateDataRequest(BaseModel):
 
     @validator('num_groups', always=True)
     def set_default_groups(cls, v, values):
-        """Auto-obliczenie liczby grup, jeśli nie podano."""
         if v is None and 'total_people' in values:
             return max(10, values['total_people'] // 3)
         return v
     
     @validator('num_groups')
     def validate_groups_vs_people(cls, v, values):
-        """Sprawdź, czy liczba grup nie przekracza liczby osób."""
         if 'total_people' in values and v > values['total_people']:
             raise ValueError(
                 f"Liczba grup ({v}) nie może być większa niż liczba osób ({values['total_people']})"
             )
         return v
 
-# --- NOWY MODEL: Odpowiedź Generatora ---
 class GenerateDataResponse(BaseModel):
     guests: List[Guest]
     relationships: List[Relationship]
@@ -96,7 +90,6 @@ class GenerateDataResponse(BaseModel):
         description="Statystyki wygenerowanych danych"
     )
 
-# --- Model Żądania Rozwiązania ---
 class SolveRequest(BaseModel):
     algorithm: AlgorithmType
     num_tables: int = Field(ge=2, le=50)
@@ -107,7 +100,6 @@ class SolveRequest(BaseModel):
 
     @validator('num_tables')
     def validate_capacity(cls, v, values):
-        """Sprawdź, czy jest wystarczająco miejsc dla wszystkich gości."""
         if 'guests' in values and 'table_capacity' in values:
             total_people = sum(g.size for g in values['guests'])
             total_capacity = v * values['table_capacity']
@@ -118,7 +110,6 @@ class SolveRequest(BaseModel):
                 )
         return v
 
-# --- Modele Wyjściowe (Response) ---
 class SolverResponse(BaseModel):
     algorithm: str
     score: float
@@ -132,7 +123,6 @@ class SolverResponse(BaseModel):
         description="Statystyki rozwiązania (balans, wykorzystanie stołów, itp.)"
     )
 
-# --- NOWY MODEL: Statystyki Problemu ---
 class ProblemStats(BaseModel):
     """Statystyki instancji problemu (do wyświetlenia w UI)."""
     total_people: int
